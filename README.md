@@ -73,6 +73,24 @@ To ensure the visualizer can receive tracking data:
    * Click **Apply Changes** to save to the switch.  
 3. **Map Settings:** Use Visualizer Settings to hide specific zones, toggle labels, or adjust the map boundaries.  
 
+
+## Understanding the Data and Limitations:
+
+1. **Radar Objects:** It is important to understand that the switch does not send an all clear when there is no motion. Instead it will just stop sending location data. This means that the last tracked object will stay on the radar map **indefinitely** after its gone. To tell its all clear you need to refer to the Occupancyy status or just note the packet age(it will be many seconds between packets when no objects in view). 
+2. **Network Glitches:** If your zigbee network is slow you make see wierd glitches when you draw and save a new zone. The app will Transmit the drawn zone via mqtt but occasionally the network may fail to sent it to the switch, Causing the drawn zone to disapear.
+
+## Bugs
+
+**Known Issues**
+* Stay areas invert width when applyed. Just reapply to fix. This seems to be a z2m or switch issue as it happens in Z2M if you configure the zones manually.
+
+Please open issues if you run into any bugs in the app. I will try and update the app in due time. I try and test as much as I can but I am limited by time.
+
+The Docker version will be updated a bit delayed from the HA addon version but I will try and keep them in feature parity.
+
+
+
+
 ## **⚠️ Requirements**
 
 * [Zigbee2MQTT V2.8.0 or higher](https://www.zigbee2mqtt.io/).  
