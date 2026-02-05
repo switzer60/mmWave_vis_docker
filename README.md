@@ -1,72 +1,85 @@
-# Inovelli mmWave Visualizer for Z2M
+# **Inovelli mmWave Visualizer (Standalone Docker)**
 
-**Live 2D presence tracking and interference zone configuration for Inovelli Smart Switches in Z2M.**
+**Live 2D presence tracking and interference zone configuration for Inovelli Smart Switches in Zigbee2MQTT.**
 
-## Overview
+## **Overview**
 
-Decodes Zigbee2MQTT payloads to visualize real-time MQTT data and configure detection, interference, and stay zones via MQTT commands. Built because I had a need for this when I was setting up my own mmWave Switches.
+This is the standalone Docker version of the Inovelli mmWave Visualizer. It decodes Zigbee2MQTT payloads to visualize real-time tracking data and allows you to configure detection, interference, and stay zones via a web UI. This version is ideal for users running Zigbee2MQTT in Docker or on a separate machine from Home Assistant.
 
+## **✨ Features**
 
+* **📡 Live 2D Radar Tracking:** See up to 3 simultaneous targets moving in real-time with historical comet tails.  
+* **📏 Dynamic Zone Configuration:** Visually define your detection room limits (Width, Depth, and Height).  
+* **🚫 Interference Management:** View, Auto-Config, and Clear interference zones directly from the UI to filter out moving fans, vents, and curtains.  
+* **🔄 Live Sensor Data:** Streams Global Occupancy and Illuminance states via MQTT.  
+* **🧱 Multi-Zone Support:** Configure up to 4 areas per zone type (Requires recent Inovelli Firmware & Z2M version).  
+* **✨ Vibe:** AI assisted in the design of this app.
 
-## ✨ Features
+## **🚀 Installation (Docker Compose)**
 
-* **📡 Live 2D Radar Tracking:** See up to 3 simultaneous targets moving in real-time with historical comet tails.
-* **📏 Dynamic Zone Configuration:** Visually define your detection room limits (Width, Depth, and Height).
-* **🚫 Interference Management:** View, Auto-Config, and Clear interference zones directly from the UI to filter out moving fans, vents, and curtains.
-* **🔄 Live Sensor Data:** streams Global Occupancy and Illuminance states via MQTT.
-* **🧱 Multi-Zone Support:** Configure up to 4 areas per zone type.(Please update to latest version on Z2M)
-* **✨ Vibe:** AI assisted in the design of this app
+The easiest way to run the visualizer is using Docker Compose.
 
+1. **Create a docker-compose.yml file:**
 
-## ⚙️ Configuration of Container
+services:  
+  mmwave-visualizer:  
+    image: ghcr.io/nickduvall921/mmwave\_vis\_docker:main  
+    container\_name: mmwave\_vis  
+    ports:  
+      \- "5000:5000"  
+    environment:  
+      \- MQTT\_BROKER=192.168.1.50  \# \<--- Change to your MQTT Broker IP  
+      \- MQTT\_PORT=1883  
+      \- MQTT\_USERNAME=your\_user   \# \<--- Optional  
+      \- MQTT\_PASSWORD=your\_pass   \# \<--- Optional  
+      \- Z2M\_BASE\_TOPIC=zigbee2mqtt  
+    restart: unless-stopped
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `mqtt_broker` | The hostname of your MQTT Broker | `ip address` |
-| `mqtt_port` | The port your broker uses | `1883` |
-| `mqtt_username` | Your MQTT username (if applicable) | `""` |
-| `mqtt_password` | Your MQTT password (if applicable) | `""` |
+2. **Run the container:**
 
+docker-compose up \-d
 
-## 🎚️ Configuration of Inovelli Switches
+3. **Open your browser:** Navigate to http://\<your-ip\>:5000.
 
-1. You will need to bind "manuSpecificInovelliMMWave" to Source endpoint 1. You can do this under the switch’s device page in Z2M and then go to the "Bind" tab.
-2. Click the Clusters dropdown and add "manuSpecificInovelliMMWave".
-3. Then Click Bind. Should see a Green Bind Success message.
-4. Lastly go to the Exposes tab and Enable "MmWaveTargetInfoReport". I would recommend disabling this when you don’t need it as it floods the ZigBee network when there is a target detected.
+## **⚙️ Configuration Variables**
 
+| **Environment Variable** | **Description** | **Default** |
 
-## 🚀 Usage Guide
+| MQTT\_BROKER | IP address or hostname of your MQTT Broker | localhost |
 
-1. **Select Switch:** Use the top-left dropdown to select your device. It may take a moment to populate as it waits for an MQTT message.
-2. **Edit Zones:**
-    - Open the Zone Editor sidebar.
-    - Select a Target Zone (e.g., "Detection Area 1").
-    - Click Draw / Edit.
-    - Drag the box on the map or type exact coordinates (including Height/Z-axis) in the sidebar.
-    - Click Apply Changes to save to the switch.
-    - You can always click Force Sync to reload the state from the switch and make sure everything was sent to the switch correctly.
-3. **Map Settings:** Use Visualizer Settings to hide specific zones, toggle labels, or adjust the map boundaries (e.g., expand X/Y for large rooms).
-4. **Auto-Config:** To mask fans/curtains, clear the room, turn on the moving object, and click Auto-Config Interference. Red zone should appear if sucsesful 
+| MQTT\_PORT | The port your broker uses | 1883 |
 
-**Detection Area (Green/Blue):** This defines the active boundary of the sensor. The sensor only looks for motion inside this box. Anything happening outside these coordinates is completely ignored.
+| MQTT\_USERNAME | Your MQTT username | "" |
 
-**Interference Area (Red):** This defines an exclusion zone. Any motion detected inside this box is discarded. This is used to mask out constant motion sources like ceiling fans, oscillating vents, or curtains blowing in the wind.
+| MQTT\_PASSWORD | Your MQTT password | "" |
 
-**Stay Area (Orange):** This defines a high-sensitivity zone specifically for stationary presence. It is intended for areas where people sit or lie down (e.g., a sofa, bed, or desk) to ensure the lights stay on even if you are moving very little (breathing/typing).
+| Z2M\_BASE\_TOPIC | The base topic configured in Zigbee2MQTT | zigbee2mqtt |
 
-## Bugs
-**Known Issues**
-* Stay areas invert width when applyed. Just reapply to fix. This seems to be a z2m or switch issue as it happens in Z2M if you configure the zones manually.
+## **🎚️ Configuration of Inovelli Switches**
 
-**Bugs** Please open issues if you run into any bugs in the app. I will try and update the app in due time. I try and test as much as I can but I am limited by time.
+To ensure the visualizer can receive tracking data:
 
+1. **Bind the Cluster:** Go to the switch's device page in Z2M \-\> **Bind** tab.  
+2. Bind manuSpecificInovelliMMWave from Source endpoint 1 to your coordinator.  
+3. **Enable Reporting:** In the **Exposes** tab, enable MmWaveTargetInfoReport.  
+   * *Note: It is recommended to disable this when not in use to reduce Zigbee network traffic.*
 
+## **🚀 Usage Guide**
 
-## ⚠️ Requirements
+1. **Select Switch:** Use the top-left dropdown to select your device. It will populate as soon as the switch checks in via MQTT.  
+2. **Edit Zones:**  
+   * Open the **Zone Editor** sidebar.  
+   * Select a Target Zone (e.g., "Detection Area 1").  
+   * Click **Draw / Edit**.  
+   * Drag the box on the map or type exact coordinates (including Height/Z-axis) in the sidebar.  
+   * Click **Apply Changes** to save to the switch.  
+3. **Map Settings:** Use Visualizer Settings to hide specific zones, toggle labels, or adjust the map boundaries.  
 
-* [Zigbee2MQTT V2.8.0 or higher](https://www.zigbee2mqtt.io/).
+## **⚠️ Requirements**
+
+* [Zigbee2MQTT V2.8.0 or higher](https://www.zigbee2mqtt.io/).  
 * At least one Inovelli mmWave Smart Switch.
 
-## Licence
+## **License**
+
 GNU General Public License v3.0
